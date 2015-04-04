@@ -1,0 +1,101 @@
+<IfModule mod_deflate.c>
+    SetOutputFilter DEFLATE
+    #ForceType application/x-httpd-php
+    <IfModule mod_setenvif.c>
+        # Netscape 4.x has some problems...
+        BrowserMatch ^Mozilla/4 gzip-only-text/html
+        
+        # Netscape 4.06-4.08 have some more problems
+        BrowserMatch ^Mozilla/4\.0[678] no-gzip
+        
+        # MSIE masquerades as Netscape, but it is fine
+        # BrowserMatch \bMSIE !no-gzip !gzip-only-text/html
+        
+        # NOTE: Due to a bug in mod_setenvif up to Apache 2.0.48
+        # the above regex won't work. You can use the following
+        # workaround to get the desired effect:
+        BrowserMatch \bMSI[E] !no-gzip !gzip-only-text/html
+        
+        # Don't compress images
+        SetEnvIfNoCase Request_URI .(?:gif|jpe?g|png)$ no-gzip dont-vary
+    </IfModule>
+    
+    <IfModule mod_headers.c>
+        # Make sure proxies don't deliver the wrong content
+        Header append Vary User-Agent env=!dont-vary
+    </IfModule> 
+</IfModule>
+
+#<Files mysig.png>
+<Files mysig2.png>
+ForceType application/x-httpd-php5
+</Files>
+
+RewriteEngine On    # Turn on the rewriting engine
+#RewriteBase         /site-rift-stage/
+RewriteRule         ^administrator                                                                                      modules/admin/index.php
+
+#RewriteRule         ^guild/sig/([0-9]+)g([0-9]+)r([0-9]+)d([0-9]+)t([0-9]+)p([0-9]+)tr*$                                modules/guild/mysig.png?gid=$1&rank=$2&dungeon=$3&tier=$4&points=$5&trend=$6
+#RewriteRule         ^guild/sig/([0-9]+)g([0-9]+)r([0-9]+)d([0-9]+)t([0-9]+)p([0-9]+)t([0-9]+)dr([0-9]+)s*$              modules/guild/mysig.png?gid=$1&rank=$2&dungeon=$3&tier=$4&points=$5&trend=$6&display=$7&size=$8
+#RewriteRule         ^guild/sig/([0-9]+)g([0-9]+)r([0-9]+)d([0-9]+)t([0-9]+)p([0-9]+)t([0-9]+)dr([0-9]+)s([0-9]+)y*$     modules/guild/mysig.png?gid=$1&rank=$2&dungeon=$3&tier=$4&points=$5&trend=$6&display=$7&size=$8&system=$9
+
+RewriteRule         ^guild/sig/([0-9]+)g([0-9]+)r([0-9]+)d([0-9]+)t([0-9]+)p([0-9]+)tr*$                                modules/guild/mysig2.png?gid=$1&rank=$2&dungeon=$3&tier=$4&points=$5&trend=$6
+RewriteRule         ^guild/sig/([0-9]+)g([0-9]+)r([0-9]+)d([0-9]+)t([0-9]+)p([0-9]+)t([0-9]+)dr([0-9]+)s*$              modules/guild/mysig2.png?gid=$1&rank=$2&dungeon=$3&tier=$4&points=$5&trend=$6&display=$7&size=$8
+RewriteRule         ^guild/sig/([0-9]+)g([0-9]+)r([0-9]+)d([0-9]+)t([0-9]+)p([0-9]+)t([0-9]+)dr([0-9]+)s([0-9]+)y*$     modules/guild/mysig2.png?gid=$1&rank=$2&dungeon=$3&tier=$4&points=$5&trend=$6&display=$7&size=$8&system=$9
+
+RewriteRule         ^/?$                                                                                                modules/news/index.php 
+RewriteRule         ^/([a-zA-Z0-9\-!?_,():./#%'~`]+)*$                                                                  modules/news/index.php?article=$1   
+
+RewriteRule         ^news/?$                                                                                            modules/news/index.php
+RewriteRule         ^news/([a-zA-Z0-9\-!?_,():./#%'~`]+)*$                                                              modules/news/index.php?article=$1      
+
+RewriteRule         ^standings/?$                                                                                       modules/standing/index.php?display=world
+RewriteRule         ^standings/([0-9]+)*$                                                                               modules/standing/index.php?display=world&tier=$1     
+RewriteRule         ^standings/([a-z]+)/([a-zA-Z\-_]+)*$                                                                modules/standing/index.php?display=$1&tier=$2
+RewriteRule         ^standings/([a-z]+)/([a-zA-Z\-_]+)/([0-9]+)*$                                                       modules/standing/index.php?display=$1&tier=$2&type=$3          
+RewriteRule         ^standings/([a-z]+)/([a-zA-Z\-_]+)/([a-zA-Z\:-_]+)*$                                                modules/standing/index.php?display=$1&tier=$2&dungeon=$3      
+RewriteRule         ^standings/([a-z]+)/([a-zA-Z\-_]+)/([a-zA-Z\:-_]+)/([a-zA-Z0-9\+-_!?,()./#%'~ó`]+)*$                modules/standing/index.php?display=$1&tier=$2&dungeon=$3&encounter=$4
+RewriteRule         ^standings/redirect                                                                                 modules/standing/redirect.php          
+
+RewriteRule         ^rankings/?$                                                                                        modules/ranking/index.php
+RewriteRule         ^rankings/([a-z]+)/([a-z]+)/([a-zA-Z\-_]+)*$                                                        modules/ranking/index.php?poll=$1&display=$2&tier=$3
+RewriteRule         ^rankings/([a-z]+)/([a-z]+)/([a-zA-Z\-_]+)/([a-zA-Z\:+-_]+)*$                                        modules/ranking/index.php?poll=$1&display=$2&tier=$3&dungeon=$4
+RewriteRule         ^rankings/([a-z]+)/([a-z]+)/([a-zA-Z\-_]+)/([0-9]+)*$                                               modules/ranking/index.php?poll=$1&display=$2&tier=$3&type=$4
+RewriteRule         ^rankings/redirect                                                                                  modules/ranking/redirect.php
+
+RewriteRule         ^server_rankings/?$                                                                                 modules/server_rankings/index.php
+
+RewriteRule         ^servers/redirect                                                                                   modules/servers/redirect.php 
+RewriteRule         ^servers/?$                                                                                         modules/servers/index.php
+RewriteRule         ^servers/([a-zA-Z]+)*$                                                                              modules/servers/index.php?server=$1
+RewriteRule         ^servers/([a-zA-Z]+)/([a-zA-Z\:-_]+)*$                                                              modules/servers/index.php?server=$1&tier=$2
+
+RewriteRule         ^search/?$                                                                                          config/search.php?guild=$1  
+
+RewriteRule         ^terms_of_service/?$                                                                                modules/tos/index.php
+
+RewriteRule         ^how_it_works/?$                                                                                    modules/how/index.php
+
+RewriteRule         ^privacy_policy/?$                                                                                  modules/privacy/index.php
+
+RewriteRule         ^contact/?$                                                                                         modules/contact/index.php
+
+RewriteRule         ^register/?$                                                                                        modules/register/index.php
+
+RewriteRule         ^guild_list/?$                                                                                        modules/guild_list/index.php
+
+RewriteRule         ^forgot/?$                                                                                          modules/forgot/index.php
+RewriteRule         ^forgot/([0-9]+)*$                                                                                  modules/forgot/index.php?id=$1
+RewriteRule         ^forgot/([0-9]+)/([a-zA-Z0-9]+)*$                                                                   modules/forgot/index.php?id=$1&regkey=$2
+
+RewriteRule         ^login/?$                                                                                           modules/login/index.php
+
+RewriteRule         ^quick/?$                                                                                           modules/quick/index.php
+
+RewriteRule         ^logout/?$                                                                                          modules/logout/index.php
+
+RewriteRule         ^user/?$                                                                                            modules/user/index.php
+
+RewriteRule         ^guild/([a-zA-Z0-9\-!?,()_.=&é/#%'~ó`*]+)                                                           modules/guild/index.php?guild=$1 [L,B]
+
+ErrorDocument 404 /errors/404.php

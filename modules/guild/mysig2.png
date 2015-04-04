@@ -1,0 +1,99 @@
+<?php
+	Header('Content-type: image/png');
+	Header('Cache-Control: no-store, no-cache, must-revalidate, post-check=0, pre-check=0');
+	Header('Expires: Thu, 19 Nov 1981 08:52:00 GMT');
+	Header('Pragma: no-cache');
+
+	$ROOT 			= dirname(dirname(dirname(__FILE__)));
+	include_once 	"{$ROOT}/configuration.php";
+
+	//***************START-DECLARING VARIABLES**************
+	$guild_details 	= array();
+	$box_name 		= array();
+	$box_rank 		= array(); 
+	$box_content 	= array();
+	$guild_id 		= $_GET['gid'];
+	$select_system 	= $_GET['system'];
+	$select_dungeon = $_GET['dungeon'];
+	$select_tier  	= $_GET['tier'];
+	$select_size  	= $_GET['size'];
+	$show_display 	= $_GET['display'];
+	$show_rank		= 1;
+	$rank_type 		= "";
+	$content 		= ""; 
+	$progress 		= ""; 
+	$rank_abbrev 	= "";
+	$img_trend 		= "";
+	$type 			= "";
+	$dungeon 		= "";
+	$starting_point = 390;
+
+	$GLOBALS['fold_widgets'] 	= "{$ROOT}/images/widgets/new/";
+	$GLOBALS['fold_flags'] 		= "{$ROOT}/images/flags/";
+	$GLOBALS['fold_fonts']		= "{$ROOT}/fonts/";
+	//***************END-DECLARING VARIABLES**************
+
+	$guild_details 	= get_guild_details($guild_id);
+	$rank_abbrev 	= $GLOBALS['point_system_abbrev'][$select_system];
+
+	if ( isset($_GET['display']) && $_GET['display'] == "" ) $show_display = 1;
+
+	if ( isset($_GET['rank']) && $_GET['rank'] == "2" ) $rank_type = "World";
+	if ( isset($_GET['rank']) && $_GET['rank'] == "1" ) $rank_type = "Region";
+	if ( isset($_GET['rank']) && $_GET['rank'] == "0" ) $rank_type = "Server";
+	if ( !isset($_GET['rank']) ) $rank_type = "World";
+
+	// Dungeon Ranking
+	if ( isset($guild_details['dungeon_details'][$select_dungeon]) ) { 
+		$ranking_details 	= $guild_details['dungeon_details'][$select_dungeon]; 
+		$content 			= $GLOBALS['global_dungeon_array'][$select_dungeon]['abbreviation']." $rank_abbrev Ranking";
+		$progress 			= $guild_details['dungeon_details'][$select_dungeon]['standing']." ".$GLOBALS['global_dungeon_array'][$select_dungeon]['name'];    
+	}
+
+	$rank 		= format_ordinal($ranking_details[0][strtolower($rank_type)]['legacy_rank']);
+	$name 		= $guild_details['name'];
+	$server 	= $guild_details['server'];
+	$faction 	= strtolower($guild_details['faction']);
+	$region 	= $guild_details['region'];
+	$country 	= strtolower(str_replace(" ", "_", $guild_details['country']));
+	$site 		= substr($GLOBALS['host_name'], 11);
+	
+	if ( $rank_type == "World" ) $rank = "World $rank";
+	if ( $rank_type == "Region" ) $rank = "$region $rank";
+	if ( $rank_type == "Server" ) $rank = "$server $rank";
+
+	$image 		= imagecreatefrompng("{$GLOBALS['fold_widgets']}bg_widget_{$faction}.png");
+
+	imageAlphaBlending($image, true);
+	imageSaveAlpha($image, true);
+
+	$font_arial_regular		= "{$GLOBALS['fold_fonts']}ARIAL.TTF";
+	$font_arial_bold 		= "{$GLOBALS['fold_fonts']}ARIALBD.TTF";
+	$font_arial_black  		= "{$GLOBALS['fold_fonts']}ARIBLK.TTF";
+	$font_verdana_regular 	= "{$GLOBALS['fold_fonts']}VERDANA.TTF";
+	$font_verdana_bold 		= "{$GLOBALS['fold_fonts']}VERDANAB.TTF";
+	$font_verdana_italic 	= "{$GLOBALS['fold_fonts']}VERDANAI.TTF";
+	$font_impact 			= "{$GLOBALS['fold_fonts']}IMPACT.TTF";
+	$white 					= imagecolorallocate($image, 255, 255, 255); 
+
+	imageTTFText($image, "16.5", 0, 75, 25, $white, $font_arial_bold, $name);
+
+	$flag = imagecreatefrompng("{$GLOBALS['fold_flags']}{$country}.png");
+	imagecopymerge($image, $flag, 78, 31, 0, 0, 29, 16, 100);
+
+	imageTTFText($image, 9, 0, 109, 43, $white, $font_arial_regular, $region."-".$server);
+
+	$box_rank = imagettfbbox(12, 0, $font_impact, $rank);
+	imageTTFText($image, 12, 0, (599 - $box_rank[2]), 20, $white, $font_impact, $rank);
+
+	$box_progress = imagettfbbox("8.0", 0, $font_arial_regular, $progress);
+	imageTTFText($image, "8.0", 0, (599 - $box_progress[2]), 32, $white, $font_arial_regular, $progress); 
+
+	$box_site = imagettfbbox("6.0", 0, $font_verdana_bold, $site);
+	imageTTFText($image, "6.0", 0, (599 - $box_site[2]), 42, $white, $font_verdana_bold, $site);             
+	
+	imagepng($image);
+	imagedestroy($image);
+
+	mysql_close($dblink);
+?>
